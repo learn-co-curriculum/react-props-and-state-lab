@@ -3,6 +3,8 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -29,10 +31,47 @@ var App = function (_React$Component) {
         type: 'all'
       }
     };
+
+    _this.handleChangeFilterType = _this.handleChangeFilterType.bind(_this);
+    _this.fetchPets = _this.fetchPets.bind(_this);
+    _this.handleAdoptPet = _this.handleAdoptPet.bind(_this);
     return _this;
   }
 
   _createClass(App, [{
+    key: 'fetchPets',
+    value: function fetchPets() {
+      var _this2 = this;
+
+      var url = '/api/pets';
+
+      if (this.state.filters.type !== 'all') {
+        url += '?type=' + this.state.filters.type;
+      }
+
+      fetch(url).then(function (res) {
+        return res.json();
+      }).then(function (pets) {
+        return _this2.setState({ pets: pets });
+      });
+    }
+  }, {
+    key: 'handleChangeFilterType',
+    value: function handleChangeFilterType(type) {
+      this.setState({
+        filters: Object.assign({}, this.state.filters, {
+          type: type
+        })
+      });
+    }
+  }, {
+    key: 'handleAdoptPet',
+    value: function handleAdoptPet(petId) {
+      this.setState({
+        adoptedPets: [].concat(_toConsumableArray(this.state.adoptedPets), [petId])
+      });
+    }
+  }, {
     key: 'render',
     value: function render() {
       return React.createElement(
@@ -56,12 +95,15 @@ var App = function (_React$Component) {
             React.createElement(
               'div',
               { className: 'four wide column' },
-              React.createElement(Filters, null)
+              React.createElement(Filters, { filters: this.state.filters,
+                onChangeType: this.handleChangeFilterType,
+                onFindPetsClick: this.fetchPets
+              })
             ),
             React.createElement(
               'div',
               { className: 'twelve wide column' },
-              React.createElement(PetBrowser, null)
+              React.createElement(PetBrowser, { pets: this.state.pets, adoptedPets: this.state.adoptedPets, onAdoptPet: this.handleAdoptPet })
             )
           )
         )
@@ -93,10 +135,18 @@ var Filters = function (_React$Component) {
   function Filters() {
     _classCallCheck(this, Filters);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Filters).call(this));
+    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Filters).call(this));
+
+    _this.handleFilterTypeChange = _this.handleFilterTypeChange.bind(_this);
+    return _this;
   }
 
   _createClass(Filters, [{
+    key: "handleFilterTypeChange",
+    value: function handleFilterTypeChange(ev) {
+      this.props.onChangeType(ev.target.value);
+    }
+  }, {
     key: "render",
     value: function render() {
       return React.createElement(
@@ -112,7 +162,7 @@ var Filters = function (_React$Component) {
           { className: "field" },
           React.createElement(
             "select",
-            { name: "type", id: "type" },
+            { name: "type", id: "type", value: this.props.filters.type, onChange: this.handleFilterTypeChange },
             React.createElement(
               "option",
               { value: "all" },
@@ -140,7 +190,7 @@ var Filters = function (_React$Component) {
           { className: "field" },
           React.createElement(
             "button",
-            { className: "ui secondary button" },
+            { className: "ui secondary button", onClick: this.props.onFindPetsClick },
             "Find pets"
           )
         )
@@ -172,12 +222,30 @@ var Pet = function (_React$Component) {
   function Pet() {
     _classCallCheck(this, Pet);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Pet).call(this));
+    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Pet).call(this));
+
+    _this.handleAdoptPet = _this.handleAdoptPet.bind(_this);
+    return _this;
   }
 
   _createClass(Pet, [{
+    key: "handleAdoptPet",
+    value: function handleAdoptPet() {
+      this.props.onAdoptPet(this.props.pet.id);
+    }
+  }, {
     key: "render",
     value: function render() {
+      var _props = this.props;
+      var pet = _props.pet;
+      var isAdopted = _props.isAdopted;
+      var name = pet.name;
+      var type = pet.type;
+      var gender = pet.gender;
+      var age = pet.age;
+      var weight = pet.weight;
+
+
       return React.createElement(
         "div",
         { className: "card" },
@@ -187,7 +255,9 @@ var Pet = function (_React$Component) {
           React.createElement(
             "a",
             { className: "header" },
-            "Pet name (gender: ♂ or ♀)"
+            name,
+            " ",
+            gender === 'male' ? '♂' : '♀'
           ),
           React.createElement(
             "div",
@@ -195,7 +265,7 @@ var Pet = function (_React$Component) {
             React.createElement(
               "span",
               { className: "date" },
-              "Pet type"
+              type
             )
           ),
           React.createElement(
@@ -204,24 +274,26 @@ var Pet = function (_React$Component) {
             React.createElement(
               "p",
               null,
-              "Age: "
+              "Age: ",
+              age
             ),
             React.createElement(
               "p",
               null,
-              "Weight: "
+              "Weight: ",
+              weight
             )
           )
         ),
         React.createElement(
           "div",
           { className: "extra content" },
-          React.createElement(
+          !isAdopted && React.createElement(
             "button",
-            { className: "ui primary button" },
+            { className: "ui primary button", onClick: this.handleAdoptPet },
             "Adopt pet"
           ),
-          React.createElement(
+          isAdopted && React.createElement(
             "button",
             { className: "ui disabled button" },
             "Already adopted"
@@ -263,15 +335,16 @@ var PetBrowser = function (_React$Component) {
   _createClass(PetBrowser, [{
     key: 'render',
     value: function render() {
+      var _this2 = this;
+
+      var pets = this.props.pets.map(function (pet, index) {
+        return React.createElement(Pet, { pet: pet, key: index, onAdoptPet: _this2.props.onAdoptPet, isAdopted: _this2.props.adoptedPets.includes(pet.id) });
+      });
+
       return React.createElement(
         'div',
         { className: 'ui cards' },
-        React.createElement(
-          'code',
-          null,
-          '<Pet />'
-        ),
-        '   components should go here'
+        pets
       );
     }
   }]);
