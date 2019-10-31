@@ -24,7 +24,7 @@ class App extends React.Component {
 
     fetch(endpoint)
       .then(res => res.json())
-      .then(pets => this.setState({ pets }));
+      .then(pets => this.setState({ pets: pets }));
   };
 
   onChangeType = ({ target: { value } }) => {
@@ -35,7 +35,7 @@ class App extends React.Component {
     const pets = this.state.pets.map(p => {
       return p.id === petId ? { ...p, isAdopted: true } : p;
     });
-    this.setState({ pets });
+    this.setState({ pets: pets });
   };
 
   render() {
